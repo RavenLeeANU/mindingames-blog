@@ -7,12 +7,10 @@ interface Project {
 
 const projectsData: Project[] = [
   {
-    title: 'A Search Engine',
-    description: `What if you could look up any information in the world? Webpages, images, videos
-    and more. Google has many features to help you find exactly what you're looking
-    for.`,
-    imgSrc: '/static/images/google.png',
-    href: 'https://www.google.com',
+    title: 'Fantancy World Generator',
+    description: `This is a project that enable writers use AI tools to manage their outlines.`,
+    imgSrc: '/static/images/editor_banner.png',
+    href: 'https://basic2d.vercel.app',
   },
   {
     title: 'The Time Machine',
