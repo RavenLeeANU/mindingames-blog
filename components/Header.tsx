@@ -8,7 +8,7 @@ import Image from 'next/image'
 
 const Header = () => {
   return (
-    <header className="flex items-center justify-between py-10">
+    <header className="flex items-center justify-between shadow-md p-2 md:p-4 mb-8 bg-zinc-200/90 dark:bg-zinc-700/40 rounded-lg transition-colors duration-100">
       <div>
         <Link href="/" aria-label={siteMetadata.headerTitle}>
           <div className="flex items-center justify-between">
@@ -17,7 +17,7 @@ const Header = () => {
                 className="rounded-xl"
                 width={50}
                 height={50}
-                alt="cartoon profile picture"
+                alt="logo"
                 src={siteMetadata.siteLogo}
               />
             </div>
@@ -31,7 +31,7 @@ const Header = () => {
           </div>
         </Link>
       </div>
-      <div className="flex items-center space-x-4 leading-5 sm:space-x-6">
+      <div className="flex items-center space-x-4 leading-5 sm:space-x-4">
         {headerNavLinks
           .filter((link) => link.href !== '/')
           .map((link) => (
