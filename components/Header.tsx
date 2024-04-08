@@ -8,7 +8,7 @@ import Image from 'next/image'
 
 const Header = () => {
   return (
-    <header className="flex items-center justify-between shadow-md p-2 md:p-4 mb-8 bg-zinc-200/90 dark:bg-zinc-700/40 rounded-lg transition-colors duration-100">
+    <header className="mb-8 flex items-center justify-between rounded-lg bg-zinc-200/90 p-2 shadow-md transition-colors duration-100 dark:bg-zinc-700/40 md:p-4">
       <div>
         <Link href="/" aria-label={siteMetadata.headerTitle}>
           <div className="flex items-center justify-between">

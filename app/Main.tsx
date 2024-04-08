@@ -10,10 +10,19 @@ export default function Home({ posts }) {
   return (
     <>
       <div className="divide-y divide-gray-200 dark:divide-gray-700">
-        <div className="space-y-2 pb-8 pt-6 md:space-y-5">
-          <h1 className="text-3xl font-extrabold leading-9 tracking-tight text-gray-900 dark:text-gray-100 sm:text-4xl sm:leading-10 md:text-6xl md:leading-14">
-            Latest
+        <div className="space-y-4 pb-8 pt-6 md:space-y-5">
+          <h1
+            className="leading-tighter mb-4 font-serif text-5xl font-extrabold tracking-tighter md:text-6xl"
+            data-aos="zoom-y-out"
+          >
+            Exploring the
+            <span className="bg-gradient-to-r from-blue-500 to-teal-400 bg-clip-text text-transparent">
+              Nexus
+            </span>
+            <br />
+            AI, Human Cognition, and the Dynamics of Play
           </h1>
+
           <p className="text-lg leading-7 text-gray-500 dark:text-gray-400">
             {siteMetadata.description}
           </p>
