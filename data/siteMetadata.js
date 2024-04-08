@@ -3,7 +3,7 @@ const siteMetadata = {
   title: 'Mind In Games',
   author: 'Raven Lee',
   headerTitle: 'Mindingames',
-  description: 'Exploring the Nexus: AI, Human Cognition, and the Dynamics of Play',
+  description: 'Facilitate AIGC in game industry',
   language: 'en-us',
   theme: 'system', // system, dark or light
   siteUrl: 'https://mindingames.com',
@@ -11,14 +11,15 @@ const siteMetadata = {
   siteLogo: '/static/images/logo.png',
   socialBanner: '/static/images/twitter-card.png',
   mastodon: 'https://mastodon.social/@mastodonuser',
-  email: 'address@yoursite.com',
-  github: 'https://github.com',
+  email: '540537149@qq.com',
+  github: 'https://github.com/RavenLeeANU',
   twitter: 'https://twitter.com/Twitter',
   facebook: 'https://facebook.com',
   youtube: 'https://youtube.com',
   linkedin: 'https://www.linkedin.com',
   threads: 'https://www.threads.net',
   instagram: 'https://www.instagram.com',
+  bilibili: 'https://space.bilibili.com/3361758',
   locale: 'en-US',
   analytics: {
     // If you want to use an analytics provider you have to add it to the
