@@ -1,0 +1,39 @@
+---
+title: VITS论文理解
+date: '2021-6-5'
+tags: ['VITS', 'End2End', 'Text2Speech']
+draft: false
+summary: '.'
+---
+
+2020年发表的VITS（Variational Inference with adversarial learning for end-to-end Text-to-Speech）首次提出了一种端到端的TTS方法。该方法结合了**VAE+flow+gan**三种方法进行的语音合成，简化了传统TTS训练步骤。
+
+VITS的主要优势有：
+使用单一阶段就可以完成原有两阶段流程，消除两个模型带来的Gap，并能够达到相同品质。
+可以进行并行化训练，实现参与和优势共享。
+解决了one2many的问题。
+
+缺点：
+语调、发音和韵律是统一建模的，没法细化粒度，无法单独控制，比较单一，语调较平。
+
+
+### 背景
+
+传统的TTS通常分为两个阶段，第一阶段会生成中间语音表示（如梅尔频谱图），第二阶段根据这些表示生成原始语音波形。这种方法虽然能生成高质量的语音，但训练过程繁琐，数据标注麻烦，且并行化能力较差。
+VITS系统：为了解决这些问题，VITS采用了一种并行的端到端方法，通过变分自编码器（VAE）和对抗训练来提高生成模型的表现力。此外，VITS还引入了一个随机持续时间预测器，以生成具有不同节奏的语音，从而更好地表达文本的“一对多”关系，即同一文本可以用不同的音调和节奏多种方式朗读。
+
+
+
+### 总体结构
+
+根据文中的架构图，在训练阶段的主要输入为音素(phonemes)和声谱(linear spectrogram)，即声音音频和它经过处理的标识发音的字符串。
+音频首先经过先验编码器进行编码，这是一个由多层的transformer encoder组成的TextEncoder。此后经过MAS对齐估计来进行
+
+先验编码器：TextEncoder由多层的transformer encoder组成，预测的结果输出均值与方差。
+后验编码器：由conv1d+WN网络组成+conv1d组成。输出得到均值与方差，并且使用FLOW得到复杂分布z_p。通过flow后的复杂分布z_p与先验编码器后的分布进行对MAS对齐估计。得到attn硬对齐矩阵。
+MAS对齐估计：通过mas（monotonic align search）硬对齐算法，将文本feature和序列帧feature进行一个硬对齐，拿到对齐矩阵Attn。MAS使用DP算法，假设一个文本feature其对应的帧序列符合一个高斯分布，通过DP算法做优化，计算出文本和序列的最优对齐矩阵。
+解码器：实际就是声码器HiFi-GAN V1的生成器。应用于多人模型时，在说话人嵌入向量之后添加一个线性层，拼接到的输出隐变量。
+判别器：增加了一个HiFi-GAN的多周期判别器，仅在训练的时候才起作用，用于对抗generator的训练。
+
+
+参考文章：https://zhuanlan.zhihu.com/p/560245337?utm_id=0
