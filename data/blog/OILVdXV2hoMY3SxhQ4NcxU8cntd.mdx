@@ -1,0 +1,91 @@
+---
+title: Linux 操作指南
+date: '2022-6-23'
+tags: ['Linux', '命令行', 'cheatsheet', '指令']
+draft: false
+summary: '支持新人和健忘人士快速上手的Linux操作手册'
+images: []
+---
+
+# Linux 操作指南
+
+# 常用指令
+
+[Cheat sheet](https://phoenixnap.com/kb/linux-commands-cheat-sheet)
+
+### 文件和目录管理
+
+- `ls`：列出目录内容。
+- `cd`：更改当前目录。
+- `pwd`：显示当前目录的路径。
+- `mkdir`：创建一个新目录。mkdir -p //-p 代表连同其父级都创建出来
+- `rmdir`：删除空目录。
+- `rm`：删除文件或目录。
+- `cp`：复制文件或目录。
+- `mv`：移动文件或目录，也可用于重命名。
+- `touch`：创建空文件或更新文件的时间戳。
+- `find`：在目录树中搜索文件。
+- `chmod`：更改文件的权限。
+- `chown`：更改文件的所有者。
+
+### 文本处理
+
+- `echo`：显示一行文本。
+- `cat`：查看文件内容，合并文件。
+- `more` 或 `less`：分页显示文本文件内容。
+- `grep`：搜索文本。
+- `sed`：流编辑器，用于文本替换。
+- `awk`：强大的文本分析工具。
+
+### 系统信息和管理
+
+- `top`：实时显示系统进程信息。
+- `ps`：显示当前运行的进程。 ps aux | grep python 查看所有 python 运行的程序；ps aux | grep 1954333 查看进程 PID 为 1954333 的进程
+- `kill`：结束进程。e.g. kill [pid]
+- `df`：查看磁盘使用情况。 df -h
+- `du`：查看文件和目录的磁盘使用情况。
+- `free`：查看内存使用情况。
+- `uname`：显示系统信息。
+- `who`：显示当前登录的用户。
+- `chmod`：更改文件或目录的权限。
+- `chown`：更改文件或目录的所有者。
+- 查找所有用户组： cat /etc/group
+- 添加用户：sudo usermod -aG docker wenrui
+
+### 网络工具
+
+- `ping`：检查网络连接。
+- `ifconfig` 或 `ip addr`：显示或配置网络接口。
+- `netstat`：显示网络连接、路由表、接口统计等网络信息。
+- `ssh`：远程登录工具。
+- `scp`：通过 SSH 复制文件。
+- `wget`：命令行下载工具。
+- `curl`：命令行获取网络资源的工具。
+- `hostname` 查看 ip  hostname -I
+- 跨 IP 复制文件 scp service.log wenrui@43.138.224.225:/cfs/wenrui/
+- 查端口：sudo netstat -nlp //占端口的
+
+### 软件包管理（Ubuntu/Debian）
+
+- `apt-get` 或更简单的 `apt` 命令，用于安装、更新和移除软件包。
+  - `sudo apt update`：更新可用软件包列表。
+  - `sudo apt upgrade`：升级所有可升级的软件包。
+  - `sudo apt install <package_name>`：安装软件包。
+  - `sudo apt remove <package_name>`：移除软件包，但保留配置文件。
+  - `sudo apt purge <package_name>`：移除软件包及其配置文件。
+
+安装 conda
+
+```bash
+bash Anaconda3-<version>-Linux-x86_64.sh
+```
+
+### 
+
+### 运行
+
+- nohup 后台运行
+
+```bash
+nohup  npm run start > server.log 2>&1 & exit # 运行npm run start，导出 server.log 并退出终端
+```

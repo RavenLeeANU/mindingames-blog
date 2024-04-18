@@ -1,0 +1,581 @@
+---
+title: 实用 Python 指南
+date: '2023-2-18'
+tags: ['Docker', '容器', '镜像', '指令']
+draft: false
+summary: '写给新手和健忘人士的python使用指南，未完成版本，待继续补充'
+images: []
+---
+
+# 实用 Python 指南
+
+# 基础功能
+
+记录 python 写代码中常用也常忘的知识点，尤其刷题前需要看一下
+
+<strong>快速初始化一个 n 位的 0 数组</strong>
+
+```python
+a = [0] * n  #[0,0,0...n个...0]
+```
+
+<strong>幂运算</strong>
+
+```python
+aa = a ** 2 #a * a
+sqrta = a ** 0.5 # math.sqrt(2)
+```
+
+<strong>三元运算</strong>
+
+```python
+c = a if a > 11 else b
+# if a > 11:
+#    c = a
+# else:
+#    c = b
+```
+
+<strong>列表 & 字典推导式</strong>
+
+```python
+a = [0 for i in range(0)]
+# [expression for item in iterable]
+b = { i: i ** 1 for i in range(10)}
+# {key: value for item in iterable}
+```
+
+<strong>列表取值</strong>
+
+```python
+#切片
+a = a_list[1:3] #包括1，不包括3
+#取最后一位
+a = a_list[-1]
+```
+
+<strong>取字典值</strong>
+
+```python
+list(my_dict.keys())  # 输出 ['a', 'b']
+list(my_dict.values())  # 输出 [1, 2]
+list(my_dict.items())  # 输出 [('a', 1), ('b', 2)]
+```
+
+<strong>排序(不要自己实现 for 循环的排序，会比 python 提供的慢)</strong>
+
+```python
+# 数组原地升序排序,可以指定入参reverse=True来降序
+nums.sort() 
+
+# 非原地排序 sorted() 原数组得以保留
+sorted_nums = sorted(nums) 
+
+# 对结构排序
+people = [('Alice', 32), ('Bob', 15), ('Charlie', 20)]
+sorted_people = sorted(people, key=lambda person: person[1])  #person中指定key为person[1]
+```
+
+<strong>使用 Set 去重</strong>
+
+```python
+my_list = [1, 2, 2, 3]
+my_set = set(my_list)
+```
+
+<strong>使用循环枚举制作 dict</strong>
+
+```python
+my_list = ['a', 'b', 'c']
+my_dict = {key: index for index, key in enumerate(my_list)}
+# {'a': 0, 'b': 1, 'c': 2}
+```
+
+<strong>字典安全取可能空的值</strong>
+
+```python
+a_dict.get("missing") # 不要用a_dict["missing"]
+```
+
+<strong>输入数据</strong>
+
+```python
+a = input()
+```
+
+# 常用功能
+
+<strong>异常处理</strong>
+
+```python
+try:
+    print("Trying to open the file...")
+    file = open("file.txt", "r")
+except IOError:
+    print("Error opening file!")
+else:
+    print("File opened successfully")
+    file.close()
+finally:
+    print("Executing the finally block")
+```
+
+- `try` + `exception` 基础结构
+- `else` 子句：如果 `try` 块没有引发异常，则会执行 `else` 块的代码。
+- `finally` 子句：无论是否发生异常，`finally` 块的代码都会被执行。这通常用于执行必要的清理工作，如关闭文件。
+
+<strong>数据读取和存储</strong>
+
+读取：
+
+```python
+# 打开文件，并读取内容
+with open('example.txt', 'r') as file:
+    content = file.read()
+    print(content)
+```
+
+存储：
+
+```python
+# 打开文件，并写入内容
+with open('example.txt', 'w') as file:
+    file.write("Hello, world!\n")
+```
+
+注：指定写数据类型 `encoding='utf-8'` 使用存中文。增量写入将'w'换为'a'
+
+<strong>json 处理</strong>
+
+```python
+#转字符串
+str_a = json.dumps(json_a)
+#转json
+json_a = json.loads(str_a)
+```
+
+# 快搭服务
+
+## FastAPI vs Flask
+
+现代服务器首选 FastAPI
+
+![](static/MRBKbPUeloQiDKxZVMOcvxuBnDg.png)
+
+一个支持 OpenAI 流式返回的小服务
+
+```python
+import fastapi
+import uvicorn
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
+from fastapi import Request, HTTPException
+import argparse
+import json
+import openai
+
+app = fastapi.FastAPI()
+
+# 设置CORS配置
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+TIMEOUT_KEEP_ALIVE = 20  # seconds
+
+@app.post('/v2/generate')
+async def streaming_response(request : Request):
+
+    data = await request.json()
+    print(data)
+    message = data["message"]
+
+    openai.api_key = "sk-xxxxxxx"
+    completion = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo",
+        messages=[{"role": "user", "content": message}],
+        temperature=0.5,
+        stream=True)
+    
+    def generate_bot_responses():
+        result = ""
+        for line in completion:
+            if line["choices"][0]["delta"]:
+                result += line["choices"][0]["delta"]["content"]
+            json.dumps(line)
+            print(line)
+            yield f"data: {json.dumps(line)}\n\n"
+        print(f'输出:{result}')
+
+    resp = StreamingResponse(generate_bot_responses(), media_type='text/event-stream')
+    return resp
+       
+@app.get('/v2/gamehost/{dialogue_id}')
+def get_dialogue(dialogue_id):
+    print(f"dialogue_id:{dialogue_id}")
+    return "success", 200
+
+def get_parser():
+    parser = argparse.ArgumentParser(
+        description="Zongyi Agent Server v1.0")
+    
+    parser.add_argument("--host",
+                        type=str,
+                        default="0.0.0.0",
+                        help="host name")
+    
+    parser.add_argument("--port", type=int, default=6666, help="port number")
+    return parser
+```
+
+启动
+
+```bash
+uvicorn demo_server:app --host 0.0.0.0 --port 3010 #并行启动
+python demo_server:app --host 0.0.0.0 --port 3010
+```
+
+# 快搭前端
+
+Streamlit vs Gradio 都可以帮助快速搭建前端页面（只要是对样式风格没啥要求的情况下）
+
+Streamlit 支持的功能更多它是 react 写的，Gradio 时 Huggingface 的,更适合基础展示功能
+
+## Streamlit
+
+```bash
+pip install streamlit
+```
+
+```python
+import streamlit as st
+
+# 创建一个标题
+st.title('Streamlit 示例页面')
+
+# 创建一个文本输入框，用户可以输入任何内容
+user_input = st.text_input('请输入一些文本')
+
+# 创建一个按钮，当被点击时做出反应
+if st.button('显示文本'):
+    # 当按钮被点击时，显示用户输入的文本
+    st.write(f'你输入的文本是：{user_input}')
+```
+
+启动
+
+```bash
+streamlit run app.py
+```
+
+## Gradio
+
+```bash
+pip install gradio
+```
+
+```python
+import gradio as gr
+
+def echo(text):
+    """返回用户输入的文本"""
+    return text
+
+iface = gr.Interface(fn=echo, 
+                     inputs=gr.inputs.Textbox(lines=2, placeholder="在此输入文本..."), 
+                     outputs="text",
+                     title="Gradio 示例应用",
+                     description="输入一些文本，点击提交，看看会发生什么！")
+
+iface.launch()
+```
+
+```bash
+python gradio_app.py
+```
+
+# 快搭数据库
+
+## VectorDB
+
+如 Milvus, ChromaDB 等都是免费开源的
+
+```bash
+pip install pymilvus
+```
+
+```python
+from pymilvus import Collection, CollectionSchema, FieldSchema, DataType, connections
+
+# 连接到Milvus服务器
+connections.connect()
+
+# 定义集合的schema
+fields = [
+    FieldSchema(name="id", dtype=DataType.INT64, is_primary=True, auto_id=True),
+    FieldSchema(name="embedding", dtype=DataType.FLOAT_VECTOR, dim=128)
+]
+schema = CollectionSchema(fields, "这是一个示例集合")
+
+# 创建集合
+collection_name = "example_collection"
+collection = Collection(name=collection_name, schema=schema)
+
+# 插入数据
+vectors = [[0.1] * 128] * 1000  # 假设有1000个128维的向量
+collection.insert([vectors])
+
+# 创建索引（可选）
+collection.create_index(field_name="embedding", index_params={"index_type": "IVF_FLAT", "metric_type": "L2", "params": {"nlist": 1024}})
+
+# 执行搜索
+search_params = {"metric_type": "L2", "params": {"nprobe": 10}}
+results = collection.search(vectors[:10], "embedding", search_params, limit=5)
+
+# 打印搜索结果
+for result in results:
+    print(result)
+```
+
+## NoSQL
+
+如 MongoDB
+
+```bash
+pip install motor # e.g.3.3.2
+```
+
+```python
+import json
+import abc
+from motor.motor_asyncio import AsyncIOMotorClient
+from urllib.parse import quote_plus
+
+class DatabaseInstance(metaclass=abc.ABCMeta):
+
+    @abc.abstractmethod
+    async def insert(self, db_name, collection_name, data):
+        pass
+
+    @abc.abstractmethod
+    async def find(self, db_name, collection_name, query=None):
+        pass
+
+    @abc.abstractmethod    
+    async def update(self, db_name, collection_name, query, update_data):
+        pass
+
+    @abc.abstractmethod    
+    async def delete(self, db_name, collection_name, query):
+        pass
+
+    @abc.abstractmethod    
+    async def close(self):
+        pass
+    
+    @abc.abstractmethod    
+    async def list_collection_names(self):
+        pass
+
+class MongoDBInstance(DatabaseInstance):
+    def __init__(self,args):
+        self.server_args = args
+        
+        if self.server_args.debug:
+            url = f"mongodb://{self.server_args.debug_mongo}:27017"
+        else:
+            password_qp = quote_plus(self.server_args.mongodb_password)
+            username_qp = quote_plus(self.server_args.mongodb_username)
+            url = f"mongodb://{username_qp}:{password_qp}@{self.server_args.mongodb_host}:{self.server_args.mongodb_port}"
+           
+        self.client = AsyncIOMotorClient(url)
+        # self.database = self.db.get_database(database_name)
+        # self.character_collection = self.database.get_collection(character_collection_name)
+        # self.scenario_collection = self.database.get_collection(scenario_collection_name)
+
+    async def list_database_names(self):
+        database_names = await self.client.list_database_names()
+        print(database_names)
+        return database_names
+    
+    async def list_collection_names(self, db_name):
+        db = self.client[db_name]
+        # 获取集合列表
+        collection_names = await db.list_collection_names()
+        print(f"Collections in {db_name}: {collection_names}")
+        return collection_names
+
+    async def create_database(self, db_name):
+        db = await self.client[db_name]
+        return db
+
+    def import_data(self, db_name, collection_name, json_file):
+        with open(json_file, 'r', encoding='utf-8') as file:
+            data = json.load(file)
+            
+            if isinstance(data, list):
+                self.update(db_name=db_name,collection_name=collection_name,query={"id" : data["id"]},update_data=data)
+                #collection.insert_many(data)
+            elif isinstance(data, dict):
+                self.update(db_name=db_name,collection_name=collection_name,query={"id" : data["id"]},update_data=data)
+                #collection.insert_one(data)
+            else:
+                raise ValueError("Invalid JSON data format")
+
+    def export_data(self, db_name, collection_name, json_file):
+        db = self.client[db_name]
+        collection = db[collection_name]
+
+        data = list(collection.find({}))
+        data_removeid = [{k: v for k, v in doc.items() if k != '_id'} for doc in data]
+        with open(json_file, 'w') as file:
+            json.dump(data_removeid, file)
+
+    async def insert(self, db_name, collection_name, data):
+        db = self.client[db_name]
+        collection = db[collection_name]
+        if isinstance(data, list):
+            await collection.insert_many(data)
+        elif isinstance(data, dict):
+            await collection.insert_one(data)
+        else:
+            raise ValueError("Invalid data format")
+
+    async def find(self, db_name, collection_name, query=None):
+        db = self.client[db_name]
+        collection = db[collection_name]
+        if query is None:
+            cursor = collection.find({})
+        else:
+            cursor = collection.find(query)
+        
+        documents = await cursor.to_list(length=None)
+        return documents
+
+    async def update(self, db_name, collection_name, query, update_data):
+        
+        db = self.client[db_name]
+        collection = db[collection_name]
+        result = await collection.update_one(query, {"$set": update_data},upsert=True)
+        print(result)
+        return result
+
+    async def delete(self, db_name, collection_name, query):
+        db = self.client[db_name]
+        collection = db[collection_name]
+        result = await collection.delete_many(query)
+        return result.deleted_count
+    
+    async def close(self):
+        await self.client.close()
+
+if __name__ == "__main__":
+
+    db_name = "XXX"
+    character_collection = "XXX"
+    scenario_collection = "XXX"
+
+    host = "mongodb://XXX.XXX.XXX.XX"
+    port = 27017   
+
+    # Create MongoDB Instance
+    db = MongoDBInstance(db_name,host=host,port=port)
+    
+    # 导入数据
+    json_file_c1 = "./tools/XXX/XXX.json"
+    db.import_data(db_name, character_collection, json_file_c1)
+
+    json_file_c2 = "./tools/XXX/XXX.json"
+    db.import_data(db_name, character_collection, json_file_c2)
+
+    json_file_s1 = "./tools/XXX/XXX.json"
+    db.import_data(db_name, scenario_collection, json_file_s1)
+
+    # 查询数据
+    result = db.find(db_name, character_collection,{"id" : "xiaolongnv"})
+    print(result)
+
+    result = db.find(db_name, character_collection,{"id" : "yangguo"})
+    print(result)
+
+    result = db.find(db_name, scenario_collection,{"id" : "shendiao"})
+    print(result)
+
+    # # 更新数据
+    query = {"id": "gaoqisheng"}
+    update_data = {"occupation": "黑社会老二"}
+    db.update(db_name, character_collection, query, update_data)
+
+    # 删除数据
+    delete_query = {"id": "gaoqisheng"}
+    db.delete(db_name, character_collection, delete_query)
+
+    delete_query = {"id": "kuangbiao"}
+    db.delete(db_name, scenario_collection, delete_query)
+
+    
+    # 导出数据
+    export_file = "exported_data.json"
+    db.export_data(db_name, export_file, export_file)
+
+    # 关闭数据库连接
+    db.close()
+```
+
+注意：不要用 pymongo 这个 package,这个不支持异步的实现，会导致查询派对，需要使用 motor 这个仓库来实现
+
+## SQL
+
+待补充
+
+# 科学计算
+
+## numpy
+
+待补充
+
+## Pandas
+
+待补充
+
+## SKlearn
+
+待补充
+
+# 正则表达式
+
+待补充
+
+# 我该用什么库
+
+## 鉴权
+
+使用 JWT
+
+## API 接口定义
+
+使用 Pydantic
+
+## 生成可执行文件
+
+pyInstaller
+
+## 网络异步请求
+
+Httpx
+
+## UI 图形库
+
+Tkinter
+
+PyQt/PySide
+
+## 图绘制工具
+
+matplotlib 绘制直方图、饼图等
+
+networkX 绘制关系图谱等

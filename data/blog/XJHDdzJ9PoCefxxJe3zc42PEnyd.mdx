@@ -1,0 +1,168 @@
+---
+title: Docker 操作简易指南
+date: '2023-2-18'
+tags: ['Docker', '容器', '镜像', '指令']
+draft: false
+summary: '支持新人快速上手的Docker操作手册'
+images: []
+---
+
+# Docker 操作简易指南
+
+Docker 的操作与 Git 类似，将环境保留下来，并随着改动逐次存储增量。因此，Docker 需要一个基底模型，改动也会随着提交次数的增加而增加。此外，Docker 也需要像 Git 一样配置仓库来存储和拉取镜像。
+
+## 概念
+
+<strong>Image（镜像）</strong>：可以认为是制作的一个模板。
+
+<strong>Container（容器）</strong>：可以认为是某一个模板创建的实例。
+
+## 安装
+
+- Windows 下直接安装 Docker 的客户端，使用时启动 Docker Desktop。
+- Linux 下安装命令为 `sudo apt install docker-ce`。（`docker-ce` 是 Docker 社区版（Community Edition）的缩写。Docker 社区版是免费开源的）
+
+## 常用操作
+
+### 1. <strong>增</strong>
+
+<strong>制作镜像</strong>
+
+```bash
+docker build -t stream-openai-server:{{TAG}} .
+// -t 指定新镜像的名称和标签 为 stream-openai-server:{{TAG}}
+// . 指定了本地路径
+```
+
+### 2. 查
+
+<strong>查看 docker 版本</strong>
+
+```bash
+docker --version
+```
+
+<strong>列出所有镜像</strong>
+
+```bash
+docker image ls
+```
+
+<strong>列出当前容器的详细信息(包括了运行中的容器和已停止的容器)</strong>
+
+```bash
+docker ps -a // ps=process status -a = all
+```
+
+### 3. 改
+
+<strong>将 container 中的改动提交到镜像保存</strong>
+
+```bash
+docker commit -m 'add my code' 61d697862a59 my_code:v1
+// 将 ID 为 61d697862a59 的容器的当前状态提交为一个新的镜像，镜像名称为 my_code，标签为 v1，并且这个提交操作带有一个描述信息 "add my code"。
+```
+
+<strong>给镜像添加一个新的标签</strong>
+
+```bash
+docker tag SOURCE_IMAGE[:TAG] TARGET_IMAGE[:TAG]
+//基于 SOURCE_IMAGE[:TAG] 给出 TARGET_IMAGE[:TAG]
+```
+
+### 4.删
+
+<strong>移除镜像</strong>
+
+```bash
+docker rmi {imageid} // rmi 意思是 remove image
+```
+
+### <strong>5.</strong><strong> </strong><strong>运行</strong>
+
+<strong>运行镜像</strong>
+
+```bash
+docker run -p 50091:50091 stream-openai-server:{{TAG}}
+//注意每次运行都会创建一个新的container容器
+```
+
+<strong>手动运行</strong>
+
+```bash
+docker run -p 50091:50091 -it stream-openai-server:{{TAG}} /bin/bash
+// -p 是指定port 50091:映射到50091
+// -it 是执行完之后保留 container。
+// -rm 是执行完之后删除。
+// /bin/bash指定了是镜像中的根路径
+```
+
+## Dockerfile
+
+在路径下需要包含 Dockerfile 才可以运行 docker 命令。运行时即执行 Dockerfile 中的文件。
+
+### 常用 Dockerfile 指令
+
+- `FROM`：指定基础镜像。
+- `MAINTAINER`：指定维护者信息。
+- `RUN`：在容器中执行命令。
+- `CMD`：设置容器启动后默认执行的命令。
+- `ENTRYPOINT`：设置容器启动时执行的命令，覆盖 CMD。
+- `EXPOSE`：声明容器将监听的端口。
+- `ENV`：设置环境变量。
+- `WORKDIR`：设置容器内部的工作目录。
+- `COPY` 和 `ADD`：用于将本地文件或目录复制到容器中。
+- `VOLUME`：声明容器内部的挂载点，用于持久化数据。
+- `USER`：设置运行容器的用户或用户组。
+- `LABEL`：为镜像添加元数据。
+
+一个 Docker 的用例：
+
+```bash
+# 使用官方的Python 3.8镜像作为基础镜像
+FROM python:3.10
+
+# 安装基础系统，并设置时区
+RUN apt-get install -y tzdata && ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+
+# 设置工作目录
+WORKDIR /app
+ARG GIT_COMMIT=unspecified
+LABEL git_commit=$GIT_COMMIT
+
+# 将当前目录的内容复制到工作目录中
+COPY ./utils/ /app/utils/
+COPY ./protocol/ /app/protocol
+COPY ./xcharacter_chat_client.py /app
+
+# 安装所需的包
+RUN pip install --no-cache-dir streamlit==1.27.2 pandas==2.0.3 uuid fastapi typing pydantic openpyxl pyyaml -i https://pypi.tuna.tsinghua.edu.cn/simple
+
+# 暴露端口10013供应用程序使用
+EXPOSE 10013
+
+# 定义环境变量
+ENV STREAMLIT_SERVER_PORT=10013
+
+# 创建log文件夹
+RUN mkdir -p /app/logs
+
+# 当容器启动时运行streamlit应用程序
+CMD streamlit run xcharacter_chat_client.py --server.port $STREAMLIT_SERVER_PORT > /app/logs/service.log 2>&1
+```
+
+## 配置镜像源
+
+在 Docker 的配置文件中，可以通过设置 `registry-mirrors` 来配置镜像源，以加速拉取镜像的过程。例如：
+
+```json
+"registry-mirrors": ["https://docker.mirrors.ustc.edu.cn","https://registry.docker-cn.com","http://hub-mirror.c.163.com","https://mirror.ccs.tencentyun.com","https://vamokfvd.mirror.aliyuncs.com"]
+```
+
+![](/static/images/k3/PiocbJ8LEoX1Zfxp10vcmGv2nNc.png)
+
+这些配置可以在 Docker 的设置（Setting）中进行配置。
+
+## Docker 访问宿主 IP
+
+在需要从容器内访问宿主机的场景下，宿主机的 IP 可以替换为 `host.docker.internal`。
