@@ -1,0 +1,138 @@
+
+---
+title: UE 中的字符串的处理和转换
+date: '2024-4-17'
+tags: ['Unreal', '字符串', '转换']
+draft: false
+summary: '.'
+images: []
+---
+# UE 中的字符串的处理和转换
+
+UE 中主要定义了 3 种字符串类型，`FString` `FName` 和 `FText`
+
+## FString
+
+`FString` 是最通用的字符串类型，用于处理可变的文本。它是对 C++ 标准库中 `std::string` 的封装，提供了丰富的字符串操作功能，如连接、替换、查找等。`FString` 主要用于内部逻辑处理，如路径操作、文件读写等。
+
+#### 转换方法：
+
+- 到 `FName`:
+
+```cpp
+
+FString MyString = TEXT("Example");
+FName MyName = FName(*MyString);
+```
+
+- 到 `FText`:
+
+```cpp
+
+FString MyString = TEXT("Example");
+FText MyText = FText::FromString(MyString);
+```
+
+## FName
+
+`FName` 用于标识符或非常频繁查询的字符串，如资产名称、属性名。`FName` 在内部通过整数索引来引用字符串，使得比较操作非常快速。但它不适合存储用户界面显示的文本，因为它不支持本地化。
+
+#### 转换方法：
+
+- 到 `FString`:
+
+```cpp
+
+FName MyName = FName(TEXT("Example"));
+FString MyString = MyName.ToString();
+```
+
+- 到 `FText`:
+
+```cpp
+
+FName MyName = FName(TEXT("Example"));
+FText MyText = FText::FromName(MyName);
+```
+
+## FText
+
+`FText` 用于处理需要本地化的、显示给用户的文本。它支持运行时本地化，并且与 `FString` 不同，`FText` 是不可变的。`FText` 是为显示在 UI 上的文本而设计的，比如按钮标签、对话框内容等。
+
+#### 转换方法：
+
+- 到 `FString`:
+
+```cpp
+
+FText MyText = FText::FromString(TEXT("Example"));
+FString MyString = MyText.ToString();
+```
+
+- 到 `FName`:
+
+```cpp
+
+FText MyText = FText::FromString(TEXT("Example"));
+FName MyName = FName(*MyText.ToString());
+```
+
+### 注意事项
+
+- 当从 `FText` 转换到 `FString` 时，要意识到这可能会丢失与本地化相关的上下文信息。
+- 由于 `FName` 的内部实现，频繁地将 `FString` 转换为 `FName`（或反之）可能会影响性能，因为 `FName` 需要在内部的全局表中查找或插入字符串。
+
+## TEXT
+
+`TEXT` 宏是用来确保字符串字面量在不同平台和编译环境下以正确的方式被处理的。其主要目的是确保字符串被正确地视为宽字符字符串（即使用 `wchar_t` 类型），这对于支持 Unicode 和国际化是必要的。
+
+在代码中定义一个字符串字面量时，你应该使用 `TEXT` 宏。例如，定义一个 `FString`：
+
+```cpp
+
+FString MyString = TEXT("Hello, World!");
+```
+
+这样，不管目标平台是如何处理字符串的，`"Hello, World!"` 都会被处理为宽字符串字面量，保证了代码的可移植性和兼容性。
+
+## C++ 中的字符类型
+
+### 基本字符类型
+
+1. char: 最基本的字符类型，通常用来表示单个 ASCII 字符。`char` 可以是有符号的（`signed char`）或无符号的（`unsigned char`），具体取决于编译器的实现。一个 `char` 通常占用 1 字节（8 位）。
+2. wchar_t: 宽字符类型，用于表示 Unicode 或其他宽字符集中的字符。`wchar_t` 的大小依赖于平台和编译器，通常是 2 字节（在 Windows 上）或 4 字节（在 UNIX-like 系统上），可以表示更广泛的字符集。
+3. char16_t: C++11 引入的类型，用于表示 UTF-16 编码的字符。`char16_t` 固定占用 2 字节。
+4. char32_t: C++11 引入的类型，用于表示 UTF-32 编码的字符。`char32_t` 固定占用 4 字节，足以表示任何 Unicode 字符。
+
+### 字符串类型
+
+1. *<em>C 风格字符串（char</em>）**: 由 `char` 数组组成，以空字符 `'\0'` 结尾的字符串。虽然它被广泛使用，但因为安全和操作的复杂性，不推荐在现代 C++ 代码中使用。
+2. std::string: C++ 标准库中的字符串类型，使用 `char` 类型的元素，适合处理 ASCII 或 UTF-8 编码的文本。`std::string` 提供了丰富的字符串操作功能，是处理字符串的首选类型。
+3. std::wstring: 使用 `wchar_t` 类型的元素，适合处理宽字符集。在需要处理 Unicode 字符串（尤其是在 Windows 平台）时常会使用。
+4. std::u16string: 使用 `char16_t` 类型的元素，用于处理 UTF-16 编码的字符串。
+5. std::u32string: 使用 `char32_t` 类型的元素，用于处理 UTF-32 编码的字符串。
+
+## 格式化字符串
+
+### FString::Printf
+
+`FString::Printf` 是一个非常有用的静态方法，用于格式化字符串。它类似于 C 语言中的 `sprintf` 函数，但更安全和方便，因为它直接返回一个 `FString` 对象。你提供的例子中涉及到的 `LOCTEXT` 宏和 `FString::Printf` 的结合使用，是在处理需要本地化的字符串时的典型用法。
+
+它可以接收多个参数：第一个参数是格式字符串，之后的参数是要插入到格式字符串中的值。
+
+```cpp
+
+FString::Printf(TEXT("(%s) %s"), *Param1, *Param2)
+```
+
+在这个格式字符串中，`%s` 是占位符，代表要插入的字符串。`TEXT` 宏确保了格式字符串是以正确的宽字符串格式处理的。
+
+## 字符串本地化
+
+LOCTEXT 宏用于定义本地化文本。它接受两个参数：第一个是命名空间（用于区分不同上下文中相同文本的本地化版本），第二个是默认文本。在运行时，如果有可用的本地化版本，UE4/UE5 会自动使用相应的本地化文本替换默认文本。
+
+例如：
+
+```cpp
+LOCTEXT("StaleEnvironmentPrefix", "Stale")
+```

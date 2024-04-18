@@ -1,0 +1,92 @@
+
+---
+title: 虚幻C++中创建对象
+date: '2024-3-7'
+tags: ['Unreal', '对象创建', 'Outer']
+draft: false
+summary: '.'
+images: []
+---
+
+# 对象创建
+
+## 使用 `NewObject` 创建
+
+例如
+
+```cpp
+UBVHImportFactory* BVHFactory = NewObject<UBVHImportFactory>(GetTransientPackage(), UBVHImportFactory::StaticClass());
+```
+
+中函数需要指定 `Outer` 和父类模板，`GetTransientPackage()` 使用指定了一个临时的 `Outer`,
+
+```cpp
+UBVHImportFactory* BVHFactory = NewObject<UBVHImportFactory>();
+```
+
+如果不填入指定 Outer 对象则会默认创建 Transient Package
+
+销毁: 通常不需要手动销毁用 `NewObject` 创建的对象。UE 的垃圾回收（Garbage Collection, GC）机制会自动管理这些对象的生命周期。如果对象不再被任何引用指向，GC 将在下一个周期中销毁它。
+
+**注：Outer 的作用是什么**: 用于内存管理，命名空间和组织，编辑器中的可见性。
+
+## 使用 `CreateDefaultSubobject` 在构造函数中创建组件
+
+构造 Component 组件时，创建例如:
+
+```cpp
+
+UComponent* MyComponent = CreateDefaultSubobject<UComponent>(TEXT("MyComponent"));
+```
+
+销毁: 类似于用 `NewObject` 创建的对象，通过 `CreateDefaultSubobject` 创建的组件也由垃圾回收机制自动管理。组件作为它们父对象的一部分，当父对象被销毁时，组件也会被销毁。
+
+## 使用 `SpawnActor` 创建 Actor
+
+如果是在场景中创建 Actor 对象，可以使用 `World` 下的 `SpawnActor` 进行创建
+
+例如：
+
+```cpp
+AActor* MyActor = GetWorld()->SpawnActor<AActor>(Location, Rotation);
+```
+
+销毁: 使用 `SpawnActor` 创建的 `Actor` 需要在不再需要时显式销毁，可以使用 `Destroy` 方法：
+
+```cpp
+MyActor->Destroy();
+```
+
+## 加载资源对象
+
+用于创建 Mesh 等的资产，可以使用 `UObject::StaticLoadObject()` 方法，这个函数可以加载各种类型的资源，比如纹理、网格、蓝图等，只要这些资源已经存在于游戏的包（Package）中。
+
+例如：
+
+```cpp
+UTexture* MyTexture = Cast<UTexture>(StaticLoadObject(UTexture::StaticClass(), nullptr, TEXT("/Game/Textures/MyTexture.MyTexture")));
+```
+
+销毁：使用 `StaticLoadObject` 加载的资源通常不需要手动释放
+
+全局对象和单例
+
+创建: 全局对象或单例通常在应用程序的生命周期开始时创建，比如在初始化函数中。
+
+- 销毁: 这些对象通常在应用程序关闭或模块卸载时销毁。销毁这些对象的方式取决于它们是如何创建的。如果它们是动态分配的（使用 `new`），你应该使用 `delete` 来销毁它们。如果它们是通过 UE 的对象管理系统创建的，那么可能不需要手动销毁，因为垃圾回收会处理。
+
+## 创建 Package
+
+使用 CreatePackge 创建对象，填入 Package 的路径
+
+```cpp
+UPackage* SkeletonPackage = CreatePackage(TEXT("/XVCharacter/Skeleton/skeleton.skeleton"));
+```
+
+**注 Package 的路径**：
+
+在游戏工程中的相对路径开始于 /Game/xxx，注意没有 Content 这一层。
+
+插件路径直接写 插件名 /pluginName/xxx，注意开头不是/Plugins 这一层，且不要有 Content 这一层。
+
+

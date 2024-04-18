@@ -1,0 +1,35 @@
+
+---
+title: 将 Plugin 打包为 dll 文件的方法
+date: '2024-3-7'
+tags: ['Unreal', 'Plugin', 'Build']
+draft: false
+summary: '.'
+images: []
+---
+
+# 将 Plugin 打包为 dll 文件的方法
+
+方法参考这篇文章：
+
+[https://store.algosyntax.com/tutorials/unreal-engine/how-to-package-and-sell-binary-plugins-for-ue5/](https://store.algosyntax.com/tutorials/unreal-engine/how-to-package-and-sell-binary-plugins-for-ue5/)
+
+打包为 dll 的目的是为了保护源码的版权，仅为用户提供编译好的二进制文件。
+
+步骤如下：
+
+step0. 在 build.cs 内添加 PrecompileForTargets = PrecompileTargetsType.Any;
+
+step1. 在插件内选择 packaging 选项进行 build，build 完成后获得齐全的整个插件文件。
+
+<strong>step2. 在 build.cs 文件内添加 bUsePrecompiled = true，并且删除 source 内的源码。</strong>
+
+<strong>step3. 把 binary 里面的 pdb 文件删除，把 intermediate 里面的 inc 文件删除</strong>
+
+step4. package 项目到新的工程内进行测试，可以看到在 plugin 中可以看到 c++ 文件，但是无法打开
+
+可能出现问题：
+
+`plugin failed to load because module could not be initialized successfully after it was loaded`
+
+找不到对应的文件，检查是不是 step0 没做，另外看下 intermediate 里面的 development 是不是没有正确生成。

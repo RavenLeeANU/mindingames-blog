@@ -1,0 +1,63 @@
+---
+title: 在编辑器的设置中创建插件用户自定义设置
+date: '2024-4-17'
+tags: ['Unreal', '插件设置', '自定义']
+draft: false
+summary: '.'
+images: []
+---
+
+# 创建用户自定义设置
+
+[参考文献](https://www.programmersought.com/article/28727637398/)
+
+Step1: 创建一个 `UObject` 类型的对象如 `MyPluginSetting`,定义好内部的参数
+
+```cpp
+UCLASS(config = MySetting)
+class UMySetting : public UObject
+{
+        GENERATED_BODY()
+public:
+
+        UPROPERTY(Config, EditAnywhere, Category = Settings)
+                FString ServerAddress;
+ 
+        UPROPERTY(Config, EditAnywhere, Category = Settings)
+                FString Password;
+};
+```
+
+Step2 注册：在插件的入口文件中的 `StartupModule` 中引入 `ISettingModule` 拿到其 Setting 的全局指针，并将 `MyPluginSetting` 注册进去
+
+```cpp
+if (ISettingsModule* SettingModule = FModuleManager::GetModulePtr<ISettingsModule>("Settings"))
+        {
+                SettingModule->RegisterSettings("Project", "Plugins", "MySetting",
+                        LOCTEXT("RuntimeSettingsName", "My Setting Page"),
+                        LOCTEXT("RuntimeSettingsDescription", "Configure my setting"),
+                        GetMutableDefault<UMySetting>()
+                );
+        }
+```
+
+Step3 获取：
+
+由于已经将默认类创建注册到 SettingsModule 中了，因此可以通过 `GetDefault` 函数直接获取默认模板类的参数
+
+```cpp
+const UMySetting * Settings = GetDefault<UMySetting >();
+FString ServerAddress = Settings->ServerAddress;
+FString Password = Settings->Password;
+```
+
+Step4 反注册:
+
+当插件卸载后，在 `ShutdownModule` 中将插件进行反注册
+
+```cpp
+if (ISettingsModule* SettingsModule = FModuleManager::GetModulePtr<ISettingsModule>("Settings"))
+    {
+        SettingsModule->UnregisterSettings("Project", "Plugins", "MySetting");
+    }
+```

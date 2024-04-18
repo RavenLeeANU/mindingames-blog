@@ -1,0 +1,46 @@
+
+---
+title: UE 中的日志打印
+date: '2024-3-7'
+tags: ['Unreal', 'Logger', 'Print']
+draft: false
+summary: '.'
+images: []
+---
+
+# UE 中的日志打印
+
+## 1. 输出到 UE 的控制台
+
+UE 中想要输出到 UE 的控制台，需要使用 `UE_LOG()` 宏，有三个入参，`CategoryName` 用来指定 Log 的类型，`Verbosity` 是用来指定修饰 Log 的严重等级的，常见如 `Warning` `Log` 和 `Error` , 后面的 `Format` 的入参是 `TEXT` 类型，用于填写需要输出的内容。
+
+`CatergoryName` 不是字符串，需要通过 宏 `DEFINE_LOG_CATEGORY_STATIC` 来定义。放在类前，例如：
+
+`DEFINE_LOG_CATEGORY_STATIC(LogBvhImporter, Verbose, All);`
+
+## 2. 打印到屏幕左上角
+
+可以通过获取全局对象指针 `GEngine` 的 `AddOnScreenDebugMessage` 函数获得，填入 id, 显示时间，颜色和内容等，例如：
+
+`GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Asset already exist."));`
+
+## 3. 弹出一个通知框
+
+可以使用 `FMessageDialog` 来创建一个弹出框，例如
+
+`FMessageDialog::Open(EAppMsgType::Type::Ok, FText::FromString(TEXT("Your message!")));`
+
+其中还可以通过 `EAppMsgType::Type` 来指定弹出的对话框的类型，如 `OK`,`YesNo`,`OkCancel`
+
+## 4. 创建一个右下角的通知消息
+
+可以使用 `FSlateNotificationManager` 来创建一个 `FNotificationInfo `
+
+```cpp
+FNotificationInfo Info(FText::FromString("This is a message!"));
+Info.bFireAndForget = true;  //一定时间后自动消失
+Info.FadeOutDuration = 0.5f; //淡出时间
+Info.ExpireDuration = 2.0f;  //停留时间
+
+FSlateNotificationManager::Get().AddNotification(Info)->SetCompletionState(SNotificationItem::CS_Success);
+```
