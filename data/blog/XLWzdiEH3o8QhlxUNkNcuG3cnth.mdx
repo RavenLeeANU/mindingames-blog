@@ -1,0 +1,205 @@
+---
+title: Conda 常用操作
+date: '2024-4-24'
+tags: ['Conda', 'Linux', '配置', '指令']
+draft: false
+summary: '支持新人快速上手的Conda操作手册'
+images: []
+---
+
+# Conda 常用操作
+
+[下载地址](https://docs.anaconda.com/free/anaconda/install/linux/)
+
+# 下载
+
+```bash
+# Replace <INSTALLER_VERSION> with the version of the installer file you want to download# For example, 
+# https://repo.anaconda.com/archive/Anaconda3-2023.09-0-Linux-x86_64.sh
+# All installers can be found at repo.anaconda.com/archive/
+curl -O https://repo.anaconda.com/archive/Anaconda3-<INSTALLER_VERSION>-Linux-x86_64.sh
+```
+
+安装 conda
+
+```bash
+bash Anaconda3-<version>-Linux-x86_64.sh
+```
+
+#### 
+
+# 添加 conda 到系统目录
+
+1 找到 Conda 的安装路径：例如 `/home/username/anaconda3` 或 `/home/username/miniconda3`。
+
+2 编辑 `/etc/environment` 文件：使用文本编辑器（如 `nano` 或 `vi`）以 root 权限编辑 `/etc/environment` 文件。这个文件用于设置系统级的环境变量。
+
+```bash
+sudo nano /etc/environment
+```
+
+3 添加 Conda 的 bin 目录到 PATH 变量：在 `/etc/environment` 文件中，找到 `PATH` 变量并在其值的末尾添加 Conda 的 bin 目录路径。如果文件中还没有 `PATH` 变量，添加一个新行。请确保使用完整路径，并以冒号分隔各个路径。例如，如果 Conda 安装在 `/home/username/anaconda3`，则添加的路径是 `/home/username/anaconda3/bin`：
+
+```
+PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/home/username/anaconda3/bin"
+```
+
+4 保存并退出编辑器：保存更改并退出文本编辑器。退出并保存 nano `ctrl+o` 再 `ctrl+x`
+
+5 激活更改：为了让更改生效，需要重启系统。或者，您可以通过注销然后重新登录的方式使得 `/etc/environment` 文件中的更改对当前会话生效。
+
+# 激活环境
+
+`conda init` 这将自动修改您的 shell 配置文件（比如 `.bashrc`，`.bash_profile`，`.zshrc` 等），以便 `conda` 命令和特别是 `conda activate` 能够在新的 shell 会话中正确工作。
+
+然后重启终端：为了使更改生效，需要重启终端。这意味着关闭当前的终端窗口并打开一个新的窗口，或者可以注销并重新登录。
+
+### 管理 Conda 环境
+
+- 创建新环境：
+
+```bash
+conda create --name myenv python=3.8
+```
+
+- 这个命令会创建一个名为 `myenv` 的新环境，并在其中安装 Python 3.8。
+- 激活环境：
+
+```bash
+conda activate myenv
+```
+
+- 激活名为 `myenv` 的环境。
+- 退出环境：
+
+```bash
+conda deactivate
+```
+
+- 退出当前活跃的环境。
+- 列出所有环境：
+
+```bash
+conda env list
+```
+
+- 或者
+
+```bash
+conda info --envs
+```
+
+- 列出系统上所有的 Conda 环境。
+- 删除环境：
+
+```bash
+conda remove --name myenv --all
+```
+
+- 删除名为 `myenv` 的环境及其下的所有包。
+
+### 管理 Conda 包
+
+- 安装包：
+
+```bash
+
+conda install numpy
+```
+
+- 在当前活跃的环境中安装 `numpy` 包。
+- 列出环境中的包：
+
+```bash
+
+conda list
+```
+
+- 列出当前环境中安装的所有包。
+- 更新包：
+
+```bash
+
+conda update numpy
+```
+
+- 更新当前环境中的 `numpy` 包到最新版本。
+- 卸载包：
+
+```bash
+
+conda remove numpy
+```
+
+- 从当前环境中卸载 `numpy` 包。
+
+### 查找包
+
+- 搜索包：
+
+```bash
+
+conda search numpy
+```
+
+- 搜索可用的 `numpy` 包及其版本。
+
+### 管理 Conda 本身
+
+- 更新 Conda：
+
+```bash
+
+conda update conda
+```
+
+- 更新 Conda 到最新版本。
+- 更新所有包：
+
+```bash
+
+conda update --all
+```
+
+- 更新当前环境中所有包到最新版本。
+
+### 其他有用的命令
+
+- 清理缓存：
+
+```bash
+
+conda clean --all
+```
+
+# 安装添加源
+
+**pip / conda install 找不到 nvidia 的库**
+
+指定安装 channel
+
+```bash
+conda install xxxx -c nvidia
+```
+
+**指定源**
+
+[global]
+
+index-url = https://pypi.tuna.tsinghua.edu.cn/simple
+
+[install]
+
+trusted-host = pypi.tuna.tsinghua.edu.cn
+
+**pip 指定**
+
+pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
+
+**或者写入 bash**
+
+可以在 `.bashrc` 或 `.bash_profile` 中添加如下行：
+
+export PIP_INDEX_URL=https://pypi.tuna.tsinghua.edu.cn/simple
+
+对于 Windows，可以在系统的环境变量设置中添加 `PIP_INDEX_URL` 变量，并设置其值为所选的镜像源地址。
