@@ -183,7 +183,7 @@ conda install xxxx -c nvidia
 ```
 
 **指定源**
-
+```bash
 [global]
 
 index-url = https://pypi.tuna.tsinghua.edu.cn/simple
@@ -191,15 +191,19 @@ index-url = https://pypi.tuna.tsinghua.edu.cn/simple
 [install]
 
 trusted-host = pypi.tuna.tsinghua.edu.cn
-
+```
 **pip 指定**
 
+```bash
 pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
+```
 
 **或者写入 bash**
 
 可以在 `.bashrc` 或 `.bash_profile` 中添加如下行：
 
+```bash
 export PIP_INDEX_URL=https://pypi.tuna.tsinghua.edu.cn/simple
+```
 
 对于 Windows，可以在系统的环境变量设置中添加 `PIP_INDEX_URL` 变量，并设置其值为所选的镜像源地址。
